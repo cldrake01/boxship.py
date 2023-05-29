@@ -1,12 +1,10 @@
-import json
 import functools
+import json
 import threading
-import asyncio
 from http.server import HTTPServer
 from typing import Any, Callable
 
-from aiohttp import web
-
+import requests
 from flask import Flask, jsonify, request
 
 
@@ -48,6 +46,8 @@ def expose(func: Callable[..., Any], methods: [str], port: int = 8080, hostname:
         print("Server started http://%s:%s" % (hostname, port))
         try:
             web_server.serve_forever()
+        except TypeError:
+            pass
         except KeyboardInterrupt:
             pass
 
@@ -61,3 +61,33 @@ expose_get = functools.partial(expose, methods=['GET'])
 expose_post = functools.partial(expose, methods=['POST'])
 expose_put = functools.partial(expose, methods=['PUT'])
 expose_delete = functools.partial(expose, methods=['DELETE'])
+
+jsonParam = {
+    "Id": 78912,
+    "Customer": "Jason Sweet",
+    "Quantity": 1,
+    "Price": 18.00
+}
+
+
+@expose_get
+def param():
+    if jsonParam is not None:
+        try:
+            print(jsonParam)
+        except TypeError:
+            print(TypeError, "\n The provided parameters were of the incorrect type.")
+    else:
+        print("No JSON was provided.")
+
+    r = requests.post('http://localhost:8080/', json={
+        "Id": 78912,
+        "Customer": "Jason Sweet",
+        "Quantity": 1,
+        "Price": 18.00
+    })
+
+    print(f"Status Code: {r.status_code}, Response: {r.json()}")
+
+
+param()
